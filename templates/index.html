@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weighted CGPA Calculator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container py-5">
+    <div class="bg-white p-4 rounded shadow-sm">
+        <h2 class="text-center mb-4 text-primary">
+            🎓 <strong>Weighted CGPA Calculator</strong>
+        </h2>
+
+        <div class="mb-3">
+            <label for="numSemesters" class="form-label">Number of Semesters</label>
+            <input type="number" id="numSemesters" class="form-control" placeholder="e.g. 4">
+        </div>
+
+        <button class="btn btn-primary w-100 mb-4" onclick="generateInputs()">Generate</button>
+
+        <form id="semestersForm"></form>
+
+        <button class="btn btn-success w-100 mt-3" onclick="calculateCGPA()">Calculate CGPA</button>
+
+        <div id="result" class="fs-5 fw-bold mt-4 text-center"></div>
+    </div>
+</div>
+
+<script>
+    function generateInputs() {
+        const num = parseInt(document.getElementById("numSemesters").value);
+        const form = document.getElementById("semestersForm");
+        form.innerHTML = '';
+
+        for (let i = 1; i <= num; i++) {
+            const row = document.createElement("div");
+            row.className = "row mb-3";
+
+            row.innerHTML = `
+                <div class="col">
+                    <label>Semester ${i} GPA</label>
+                    <input type="number" name="gpa" step="0.01" class="form-control" placeholder="e.g. 3.5">
+                </div>
+                <div class="col">
+                    <label>Credit Hours</label>
+                    <input type="number" name="credit" class="form-control" placeholder="e.g. 18">
+                </div>
+            `;
+
+            form.appendChild(row);
+        }
+
+        document.getElementById("result").innerHTML = '';
+    }
+
+    function calculateCGPA() {
+        const semesterElements = document.querySelectorAll('#semestersForm .row');
+        const semesters = [];
+
+        semesterElements.forEach(row => {
+            const gpa = parseFloat(row.querySelector('input[name="gpa"]').value);
+            const credit = parseFloat(row.querySelector('input[name="credit"]').value);
+            semesters.push({ gpa, credit });
+        });
+
+        fetch("/calculate", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ semesters }),
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.cgpa !== undefined) {
+                document.getElementById("result").innerHTML =
+                    `<div class="alert alert-success">✅ Your CGPA is: <strong>${data.cgpa}</strong></div>`;
+            } else {
+                document.getElementById("result").innerHTML =
+                    `<div class="alert alert-danger">❌ ${data.error}</div>`;
+            }
+        })
+        .catch(() => {
+            document.getElementById("result").innerHTML =
+                `<div class="alert alert-danger">❌ An error occurred. Please try again.</div>`;
+        });
+    }
+</script>
+</body>
+</html>
