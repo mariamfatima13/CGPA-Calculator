@@ -29,7 +29,7 @@ def calculate():
             return jsonify({"error": "Total credit hours cannot be zero"}), 400
 
         cgpa = total_weighted_gpa / total_credit_hours
-        return jsonify({"cgpa": round(cgpa, 3)})
+        return jsonify({"cgpa": "{:.2f}".format(cgpa)})
 
     except Exception as e:
         return jsonify({"error": "Invalid input format"}), 400
